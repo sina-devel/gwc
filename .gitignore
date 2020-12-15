@@ -1,2 +1,4 @@
 go.sum
 gwc
+cmd/_*
+.vscode/launch.json

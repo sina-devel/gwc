@@ -3,36 +3,29 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/sina-devel/gwc"
 )
 
-var (
-	lc    bool
-	wc    bool
-	files []string
-)
+var config = gwc.Config{}
 
 func init() {
 	app := flag.NewFlagSet("gwc", flag.ExitOnError)
-	app.BoolVar(&lc, "l", false, "print the newline counts")
-	app.BoolVar(&wc, "w", false, "print the word counts")
-	app.Parse(flag.Args())
-	if !lc && !wc {
-		lc, wc = true, true
+	app.BoolVar(&(config.LC), "l", false, "print the newline counts")
+	app.BoolVar(&(config.WC), "w", false, "print the word counts")
+	app.Parse(os.Args[1:])
+	if !config.LC && !config.WC {
+		config.LC, config.WC = true, true
 	}
-	files = app.Args()
-	if len(files) == 0 {
+	config.Filenames = app.Args()
+	if len(config.Filenames) == 0 {
 		app.Usage()
 	}
 }
 
 func main() {
-	gwc := gwc.New(gwc.Config{
-		Filenames: files,
-		WC:        wc,
-		LC:        lc,
-	})
+	gwc := gwc.New(&config)
 	gwc.Compute()
 	fmt.Println(gwc)
 }

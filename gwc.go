@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-// Config ...
+// Config is gwc app config
 type Config struct {
 	Filenames []string
 	WC        bool
@@ -25,16 +25,17 @@ type file struct {
 	err      error
 }
 
-// GWC ...
+// GWC is root of this app
 type GWC struct {
-	config Config
+	lc, wc bool
 	files  []*file
 }
 
-// New ...
-func New(config Config) *GWC {
+// New is a function that returns a GWC
+func New(config *Config) *GWC {
 	gwc := &GWC{
-		config: config,
+		lc: config.LC,
+		wc: config.WC,
 	}
 	for _, filename := range config.Filenames {
 		item := file{
@@ -53,7 +54,7 @@ func New(config Config) *GWC {
 	return gwc
 }
 
-// Compute ...
+// Compute is a method  of GWC that computes files
 func (g *GWC) Compute() {
 	var wg sync.WaitGroup
 	for _, f := range g.files {
@@ -62,7 +63,7 @@ func (g *GWC) Compute() {
 		}
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, f *file) {
-			if g.config.LC {
+			if g.lc {
 				s := bufio.NewScanner(f.reader)
 				lineCount := uint64(0)
 				for s.Scan() {
@@ -71,7 +72,7 @@ func (g *GWC) Compute() {
 				f.lines = lineCount
 				f.reader.(*os.File).Seek(0, 0)
 			}
-			if g.config.WC {
+			if g.wc {
 				s := bufio.NewScanner(f.reader)
 				s.Split(bufio.ScanWords)
 				wordCount := uint64(0)
@@ -89,10 +90,10 @@ func (g *GWC) Compute() {
 func (g *GWC) String() string {
 	var b strings.Builder
 	for _, f := range g.files {
-		if g.config.LC {
+		if g.lc {
 			fmt.Fprintf(&b, "%d\t", f.lines)
 		}
-		if g.config.WC {
+		if g.wc {
 			fmt.Fprintf(&b, "%d\t", f.words)
 		}
 		fmt.Fprintf(&b, "%q", f.filename)
